@@ -20,11 +20,10 @@ class FastaOnehot:
         self.dna_encoder=LabelEncoder().fit(array(['A','C','G','N','T']))
         self.onehot_encoder = OneHotEncoder(sparse=False).fit(array(list(range(0,5))).reshape(-1, 1))
 
-    def toOnehot(self,chunksize=100000):
+    def toOnehot(self,chunksize=10000):
         k = list(self.fa.keys())
         r = 0
         i = 0
-        # TODO: make this accept variable length sequences -> pad or crop if length =/= seqlen
         while r < self.l:
             seqnames = k[ i*chunksize:min((i+1)*chunksize,self.l)]
             seq = [ array(list(self.fa[x][:].ljust(1000,'N'))) for x in seqnames ]
@@ -36,7 +35,7 @@ class FastaOnehot:
             print('last record : '+seqnames[-1])
             yield (seqnames,onehot_encoded)
 
-    def toh5(self, file="onehot.h5", chunksize=100000):
+    def toh5(self, file="onehot.h5", chunksize=10000):
         with h5py.File(file, 'w') as f:
             cs = min(chunksize, self.l)
             f.create_dataset("seqnames", data = [np.string_(s) for s in list(self.fa.keys())], chunks=(cs,))
@@ -58,27 +57,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# def fastaOnehot(fa,chunksize=100000):
-#     fa = Fasta(fa,sequence_always_upper=True,as_raw=True)
-
-#     k = list(fa.keys())
-#     l = len(k)
-#     r = 0
-#     i = 0
-
-#     dna_encoder=LabelEncoder().fit(array(['A','C','G','N','T']))
-#     onehot_encoder = OneHotEncoder(sparse=False).fit(array(list(range(0,5))).reshape(-1, 1))
-
-#     while r < l:
-#         seqnames = k[ i*chunksize:min((i+1)*chunksize,l)]
-#         seq = [ array(list(fa[x][:])) for x in seqnames ]
-#         int_encoded = [ dna_encoder.transform(s) for s in seq ]
-#         int_encoded = [ s.reshape(len(s),1) for s in int_encoded ]
-#         onehot_encoded = array([onehot_encoder.transform(s) for s in int_encoded ])
-        
-#         r = min((i+1)*chunksize,l)
-#         i += 1
-#         print('last record : '+seqnames[-1])
-#         yield (seqnames,c,onehot_encoded)
 

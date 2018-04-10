@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript --no-save
+#!/usr/bin/env Rscript
 
 # Imports BED-files corresponding to entries in metadata.tsv (file generated when downloading batches of samples from encode)
 # Computes genome-wide enrichments based on overlaps with peaks in 1kb tiles
@@ -98,8 +98,8 @@ h5createFile("gw_enrichments.h5")
 h5createGroup("gw_enrichments.h5","data")
 h5createDataset("gw_enrichments.h5","data/enrichments",dims=c(dim(overlap_mat_scores)[1],dim(overlap_mat_scores)[2]),storage.mode=storage.mode(overlap_mat_scores),chunk=c(10000,1),level=4)
 h5createGroup("gw_enrichments.h5","meta")
-h5createDataset(file="gw_enrichments.h5","meta/colID",dims=length(accessions), storage.mode="character",size=max(nchar(accessions)))
-h5createDataset(file="gw_enrichments.h5","meta/seqID",dims=length(seq_ids), storage.mode="character",size=max(nchar(seq_ids)),chunk=10000)
+h5createDataset(file="gw_enrichments.h5","meta/colID",dims=length(accessions), storage.mode="character",size=max(nchar(accessions))+1)
+h5createDataset(file="gw_enrichments.h5","meta/seqID",dims=length(seq_ids), storage.mode="character",size=max(nchar(seq_ids))+1,chunk=10000)
 h5write(overlap_mat_scores,"gw_enrichments.h5","data/enrichments")
 h5write(seq_ids, "gw_enrichments.h5","meta/seqID")
 h5write(accessions, "gw_enrichments.h5","meta/colID")

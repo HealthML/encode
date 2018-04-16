@@ -16,11 +16,13 @@ def getargs():
     parser.add_argument('-didoh',required=True)
     parser.add_argument('-didy',required=True)
     parser.add_argument('-o',required=True)
+    parser.add_argument('-cs',required=False, type=int, default=100)
     g = parser.add_mutually_exclusive_group()
     g.add_argument('-keep',type=ind)
     g.add_argument('-drop',type=ind)
     parser.add_argument('-NN',required=False,default=10,type=int)
     parser.add_argument('-N0',required=False,default=1,type=int)
+    parser.add_argument('-minE',required=False, default=1.,type=float)
     parser.add_argument('-d0',required=False,default=1)
     args = parser.parse_args()
     return args
@@ -76,11 +78,12 @@ def main():
     def filter_x(x, NN=args.NN):
         n_N = np.sum(x,1)[:,3]
         return n_N < NN
-    def filter_y(y, N0=args.N0):
-        n_0 = np.sum( y > 1, 1)
-        return n_0 > N0
+    def filter_y(y, N0=args.N0, minE=args.minE):
+        n_0 = np.sum( y > 1., 1)
+        maxE = np.max(y, minE)
+        return (n_0 >= N0) & (maxE >= maxE) 
     p = H5Parser(args.onehot, args.y, args.didoh, args.didy, args.sidoh, args.sidy, keep=args.keep, drop=args.drop, d0=args.d0) 
-    cs = p.chunks
+    cs = args.cs
     
     with h5py.File(args.o, 'w') as outfile:
         outfile.create_dataset('seqID', shape=(1,), maxshape=(None,), chunks=(cs,),dtype=p.sx.dtype)

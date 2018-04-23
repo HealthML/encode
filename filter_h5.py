@@ -23,7 +23,7 @@ def getargs():
     parser.add_argument('-NN',required=False,default=10,type=int)
     parser.add_argument('-N0',required=False,default=1,type=int)
     parser.add_argument('-minE',required=False, default=1.,type=float)
-    parser.add_argument('-d0',required=False,default=1)
+    parser.add_argument('-d0',required=False,default=1,type=int)
     args = parser.parse_args()
     return args
 
@@ -49,12 +49,14 @@ class H5Parser:
         self.i = i
         self.chunks = self.x.chunks[0] # we will process one chunk at a time
         self.l = self.x.len()
+        self.n_chunk = self.l // self.chunks
         assert self.l == self.y.shape[d0]
         
     def parse(self):
         x_batch = None
         y_batch = None
         r = 0 # current record
+        n = 1
         while r < self.l:
             r_new = np.min([r+self.chunks,self.l])
             onehot_seq = self.sx[r:r_new]
@@ -66,7 +68,9 @@ class H5Parser:
             else:
                 y_batch = y[r:r_new,self.i]
             x_batch = self.x[r:r_new,:,:]
+            print('processed {} out of {} chunks.'.format(n, self.n_chunk))
             yield(x_batch, y_batch, onehot_seq)
+            n += 1
             r = r_new            
             
     def close(self):
@@ -80,8 +84,8 @@ def main():
         return n_N < NN
     def filter_y(y, N0=args.N0, minE=args.minE):
         n_0 = np.sum( y > 1., 1)
-        maxE = np.max(y, minE)
-        return (n_0 >= N0) & (maxE >= maxE) 
+        maxE = np.max(y, 1)
+        return (n_0 >= N0) & (maxE >= minE) 
     p = H5Parser(args.onehot, args.y, args.didoh, args.didy, args.sidoh, args.sidy, keep=args.keep, drop=args.drop, d0=args.d0) 
     cs = args.cs
     
